@@ -1,0 +1,21 @@
+{
+  "name": "realme-news",
+  "version": "1.0.0",
+  "description": "discordjs webhook and scraper",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "js"
+  ],
+  "author": "raymond-1227",
+  "license": "MIT",
+  "dependencies": {
+    "@dumpy/andylib": "^3.2.1",
+    "discord-api-types": "^0.37.45",
+    "discord.js": "^14.11.0",
+    "dotenv": "^16.3.1",
+    "puppeteer": "^19.11.1"
+  }
+}
