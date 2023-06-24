@@ -9,7 +9,7 @@ const puppeteer = require('puppeteer');
 // scrape https://www.gsmarena.com/news.php3
 async function fetch() {
     // launch puppeteer
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ headless: "new" });
     const page = await browser.newPage();
     await page.goto(config.link);
     // get all the news titles
@@ -21,14 +21,6 @@ async function fetch() {
         })
         return titles
     });
-    const bodys = await page.evaluate(() => {
-        const news = document.querySelectorAll('.news-item');
-        const bodys = [];
-        news.forEach((item) => {
-            bodys.push(item.querySelector('p').innerText);
-        })
-        return bodys
-    })
     const links = await page.evaluate(() => {
         const news = document.querySelectorAll('.news-item');
         const links = [];
@@ -37,14 +29,24 @@ async function fetch() {
         })
         return links
     })
-    const realme = titles.filter((title) => { return title.includes('Realme') })
-    console.log(realme);
-    // get the links for the realme
-    const realmeLinks = links.filter((link) => { return link.includes('realme') })
-    console.log(realmeLinks);
-    await browser.close();
-    return realmeLinks;
+    console.log(titles);
+    console.log(links);
+    return links;
 }
+let oldLinks = [];
+l.info('Starting');
+fetch().then((links) => {
+    // check if there are any new links
+    const newLinks = links.filter((link) => !oldLinks.includes(link));
+    if (newLinks.length > 0) {
+        l.debug('Sent new links');
+    } else {
+        l.error("No new links");
+        return;
+    }
+    // set the old links to the new links
+    oldLinks = links;
+}).catch((err) => console.log(err));
 let oldLinks = [];
  l.info('Starting');
     fetch().then((links) => {
