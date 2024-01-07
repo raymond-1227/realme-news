@@ -1,83 +1,55 @@
-const { WebhookClient } = require('discord.js');
-const al = require('@dumpy/andylib');
-const l = new al.logger()
-require('dotenv').config()
-const config = require('./config.json')
-const client = new WebhookClient({ id: process.env.ID, token: process.env.TOKEN });
-// import puppeteer
-const puppeteer = require('puppeteer');
-// scrape https://www.gsmarena.com/news.php3
-async function fetch() {
-    // launch puppeteer
-    const browser = await puppeteer.launch({ headless: "new" });
-    const page = await browser.newPage();
-    await page.goto(config.link);
-    // get all the news titles
-    const titles = await page.evaluate(() => {
-        const news = document.querySelectorAll('.news-item');
-        const titles = [];
-        news.forEach((item) => {
-            titles.push(item.querySelector('h3').innerText);
-        })
-        return titles
-    });
-    const links = await page.evaluate(() => {
-        const news = document.querySelectorAll('.news-item');
-        const links = [];
-        news.forEach((item) => {
-            links.push(item.querySelector('a').href);
-        })
-        return links
-    })
-    console.log(titles);
-    console.log(links);
-    return links;
-}
-let oldLinks = [];
-l.info('Starting');
-fetch().then((links) => {
-    // check if there are any new links
-    const newLinks = links.filter((link) => !oldLinks.includes(link));
-    if (newLinks.length > 0) {
-        l.debug('Sent new links');
-    } else {
-        l.error("No new links");
-        return;
-    }
-    // set the old links to the new links
-    oldLinks = links;
-}).catch((err) => console.log(err));
-let oldLinks = [];
- l.info('Starting');
-    fetch().then((links) => {
-        // check if there are any new links
-        const newLinks = links.filter((link) => !oldLinks.includes(link));
-        if (newLinks.length > 0) {
-            // send the new links
-            client.send(`${newLinks.join(' ')}`);
-            l.debug('Sent new links');
-        } else {
-            l.error("No new links");
-            return;
-        }
-        // set the old links to the new links
-        oldLinks = links;
-    }).catch((err) => console.log(err));
+import { EmbedBuilder, WebhookClient } from "discord.js";
+import { config } from "dotenv";
+import axios from "axios";
+import * as cheerio from "cheerio";
 
-setInterval(() => {
-    l.info('Starting');
-    fetch().then((links) => {
-        // check if there are any new links
-        const newLinks = links.filter((link) => !oldLinks.includes(link));
-        if (newLinks.length > 0) {
-            // send the new links
-            client.send(`${newLinks.join(' ')}`);
-            l.debug('Sent new links');
-        } else {
-            l.error("No new links");
-            return;
-        }
-        // set the old links to the new links
-        oldLinks = links;
-    }).catch((err) => console.log(err));
-}, 900000)
+config();
+
+const client = new WebhookClient({
+  url: process.env.WEBHOOK_URL,
+});
+
+const fetch = async () => {
+  const url = "https://www.gsmarena.com/";
+  const html = await axios.get(
+    "https://www.gsmarena.com/news.php3?sSearch=realme"
+  );
+  const $ = cheerio.load(html.data);
+  const news = $(".news-item");
+  const data = [];
+  news.each((i, el) => {
+    const title = $(el).find("h3").text();
+    const link = $(el).find("a").attr("href");
+    data.push({
+      title: title,
+      link: url + link,
+    });
+  });
+  return data;
+};
+
+let oldData = [];
+const check = async () => {
+  fetch()
+    .then((data) => {
+      const newData = data.filter((d) => !oldData.includes(d));
+      oldData = data;
+      newData.forEach((d) => {
+        const embed = new EmbedBuilder()
+          .setTitle(d.title)
+          .setURL(d.link)
+          .setTimestamp()
+          .setColor("#FF0000")
+          .setFooter({
+            text: "Realme News",
+          });
+        client.send({
+          embeds: [embed],
+        });
+        console.log("Sent " + d.title);
+      });
+    })
+    .catch((err) => console.log(err));
+};
+
+setInterval(check, 1000 * 60 * 10);
