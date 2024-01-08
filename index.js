@@ -28,12 +28,14 @@ const fetch = async () => {
   return data;
 };
 
-let oldData = [];
+let oldLinks = []; // Store old links instead of entire objects
 const check = async () => {
   fetch()
     .then((data) => {
-      const newData = data.filter((d) => !oldData.includes(d));
-      oldData = data;
+      const newLinks = data.map((d) => d.link);
+      const uniqueLinks = newLinks.filter((link) => !oldLinks.includes(link));
+      oldLinks = newLinks;
+      const newData = data.filter((d) => uniqueLinks.includes(d.link));
       newData.forEach((d) => {
         const embed = new EmbedBuilder()
           .setTitle(d.title)
