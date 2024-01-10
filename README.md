@@ -1,5 +1,5 @@
 # realme-news
-Developed by [@flandolf](https://github.com/flandolf), since he deleted the repo so I decided to reupload it as I am currently the one who hosts it.
+Maintained by [@flandolf](https://github.com/flandolf), since he deleted the repo so I decided to reupload it as I am currently the one who hosts it.
 
 ## About
 
