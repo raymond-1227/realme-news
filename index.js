@@ -6,8 +6,23 @@ import * as cheerio from "cheerio";
 config();
 
 const client = new WebhookClient({
-  url: process.env.WEBHOOK_URL,
+  url: process.env.DISCORD_WEBHOOK_URL,
 });
+
+const getPreviewImage = async (url) => {
+  const resp = await axios.get(url);
+  const text = resp.data;
+  // Use Cheerio to parse the HTML
+  const $ = cheerio.load(text);
+  const metaTags = $("meta");
+  for (let i = 0; i < metaTags.length; i++) {
+    const tag = metaTags[i];
+    if (tag.attribs.property === "og:image") {
+      return tag.attribs.content;
+    }
+  }
+  return;
+};
 
 const fetch = async () => {
   const url = "https://www.gsmarena.com/";
@@ -19,29 +34,30 @@ const fetch = async () => {
   const data = [];
   news.each((i, el) => {
     const title = $(el).find("h3").text();
-    const link = $(el).find("a").attr("href");
-    data.push({
-      title: title,
-      link: url + link,
-    });
+    const link = url + $(el).find("a").attr("href");
+    data.push({ title, link });
   });
   return data;
 };
 
-let oldLinks = []; // Store old links instead of entire objects
+let oldLinks = []; 
 const check = async () => {
+  console.log("Checking for new news...");
   fetch()
     .then((data) => {
+      console.log(data)
       const newLinks = data.map((d) => d.link);
       const uniqueLinks = newLinks.filter((link) => !oldLinks.includes(link));
       oldLinks = newLinks;
       const newData = data.filter((d) => uniqueLinks.includes(d.link));
       newData.forEach((d) => {
-        const embed = new EmbedBuilder()
+       getPreviewImage(d.link).then((image) => {
+          const embed = new EmbedBuilder()
           .setTitle(d.title)
           .setURL(d.link)
           .setTimestamp()
           .setColor("#FF0000")
+          .setImage(image)
           .setFooter({
             text: "Realme News",
           });
@@ -49,9 +65,9 @@ const check = async () => {
           embeds: [embed],
         });
         console.log("Sent " + d.title);
+        });
       });
     })
     .catch((err) => console.log(err));
 };
-
 setInterval(check, 1000 * 60 * 10);
