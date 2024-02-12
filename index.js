@@ -9,6 +9,21 @@ const client = new WebhookClient({
   url: process.env.WEBHOOK_URL,
 });
 
+const getPreviewImage = async (url) => {
+  const resp = await axios.get(url);
+  const text = await resp.text();
+  const htmldoc = new DOMParser().parseFromString(text, 'text/html');
+  const metaTags = htmldoc.getElementsByTagName('meta');
+  for (let i = 0; i < metaTags.length; i++) {
+      // example meta tag from GSMArena:
+      // <meta property="og:image" content="https://fdn.gsmarena.com/imgroot/news/24/02/weekly-poll-results-realme-12-pro-12-pro-plus/-952x498w6/gsmarena_000.jpg">
+      if (metaTags[i].getAttribute('property') === 'og:image') {
+          return metaTags[i].getAttribute('content');
+      }
+  }
+  return null;
+}
+
 const fetch = async () => {
   const url = "https://www.gsmarena.com/";
   const html = await axios.get(
@@ -37,11 +52,13 @@ const check = async () => {
       oldLinks = newLinks;
       const newData = data.filter((d) => uniqueLinks.includes(d.link));
       newData.forEach((d) => {
+        const previewImage = getPreviewImage(d.link);
         const embed = new EmbedBuilder()
           .setTitle(d.title)
           .setURL(d.link)
           .setTimestamp()
           .setColor("#FF0000")
+          .setImage(previewImage)
           .setFooter({
             text: "Realme News",
           });
