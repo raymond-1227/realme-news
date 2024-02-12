@@ -51,9 +51,7 @@ const check = async () => {
       oldLinks = newLinks;
       const newData = data.filter((d) => uniqueLinks.includes(d.link));
       newData.forEach((d) => {
-        const previewImage = getPreviewImage(d.link);
-        
-        previewImage.then((image) => {
+       getPreviewImage(d.link).then((image) => {
           const embed = new EmbedBuilder()
           .setTitle(d.title)
           .setURL(d.link)
@@ -72,6 +70,4 @@ const check = async () => {
     })
     .catch((err) => console.log(err));
 };
-
-check();
 setInterval(check, 1000 * 60 * 10);
