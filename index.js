@@ -6,7 +6,7 @@ import * as cheerio from "cheerio";
 config();
 
 const client = new WebhookClient({
-  url: process.env.DISCORD_WEBHOOK_URL,
+  url: process.env.WEBHOOK_URL,
 });
 
 const getPreviewImage = async (url) => {
