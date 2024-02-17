@@ -1,23 +1,22 @@
 {
   "name": "realme-news",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "discordjs webhook and scraper",
   "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [
-    "js"
-  ],
+  "keywords": ["js"],
   "author": "raymond-1227",
   "license": "MIT",
   "dependencies": {
-    "@dumpy/andylib": "^3.2.1",
     "axios": "^1.6.5",
     "cheerio": "^1.0.0-rc.12",
-    "discord-api-types": "^0.37.45",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
   }
 }
